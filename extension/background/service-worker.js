@@ -13,7 +13,7 @@
  */
 
 import { CaptureStore }          from './store.js'
-import { buildSpec, specToYAML } from '../../shared/openapi-builder.js'
+import { buildSpec, specToYAML } from './openapi-builder.js'
 
 const store   = new CaptureStore()
 let recording = true
