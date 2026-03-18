@@ -1,0 +1,177 @@
+openapi: "3.0.3"
+info:
+  title: "Sample API"
+  version: "1.0.0"
+  description: "Demo spec for testing MimicAPI mock server"
+servers:
+  - url: "http://localhost:3001"
+paths:
+  /users:
+    get:
+      summary: "GET /users"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    name:
+                      type: string
+                      example: "Alice Johnson"
+                    email:
+                      type: string
+                      format: email
+                      example: "alice@example.com"
+                    active:
+                      type: boolean
+                      example: true
+    post:
+      summary: "POST /users"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 42
+                  name:
+                    type: string
+                    example: "Bob Smith"
+                  email:
+                    type: string
+                    format: email
+  /users/{userId}:
+    get:
+      summary: "GET /users/{userId}"
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: "Alice Johnson"
+                  email:
+                    type: string
+                    format: email
+                  bio:
+                    type: string
+                    example: "Software engineer"
+                  createdAt:
+                    type: string
+                    format: date-time
+  /posts:
+    get:
+      summary: "GET /posts"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 100
+                    title:
+                      type: string
+                      example: "Getting Started with MimicAPI"
+                    body:
+                      type: string
+                      example: "MimicAPI makes frontend development faster."
+                    authorId:
+                      type: integer
+                      example: 1
+                    publishedAt:
+                      type: string
+                      format: date-time
+  /posts/{postId}:
+    get:
+      summary: "GET /posts/{postId}"
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 100
+                  title:
+                    type: string
+                    example: "Getting Started with MimicAPI"
+                  body:
+                    type: string
+                    example: "MimicAPI makes frontend development faster."
+                  author:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        example: "Alice Johnson"
+  /health:
+    get:
+      summary: "GET /health"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+                  uptime:
+                    type: integer
+                    example: 12345

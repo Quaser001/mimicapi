@@ -1,0 +1,60 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg0);
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 14px;
+  height: 44px;
+  background: var(--bg1);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.logo { display: flex; align-items: center; gap: 7px; }
+.logoMark {
+  width: 22px; height: 22px;
+  background: var(--purple);
+  color: #fff;
+  font-size: 12px; font-weight: 700;
+  border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+}
+.logoName { font-size: 13px; font-weight: 600; color: var(--text0); }
+.count    { font-size: 11px; color: var(--text2); background: var(--bg3); padding: 1px 7px; border-radius: 20px; }
+
+/* Tabs */
+.tabs { display: flex; gap: 2px; margin-left: 8px; }
+.tab {
+  background: transparent;
+  color: var(--text1);
+  padding: 4px 12px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  position: relative;
+}
+.tab:hover    { background: var(--bg2); color: var(--text0); }
+.tabActive    { background: var(--bg3); color: var(--text0); }
+.dot {
+  position: absolute; top: 5px; right: 5px;
+  width: 5px; height: 5px;
+  border-radius: 50%; background: var(--teal);
+}
+
+/* Action buttons */
+.actions { display: flex; gap: 6px; margin-left: auto; }
+.btnRed    { background: var(--red-bg);    color: var(--red);    }
+.btnGreen  { background: var(--teal-bg);   color: var(--teal);   }
+.btnPurple { background: var(--purple-bg); color: var(--purple); }
+.btnGhost  { background: var(--bg2);       color: var(--text1);  border: 1px solid var(--border); }
+
+/* Body */
+.body { flex: 1; overflow: hidden; display: flex; }
+.specBody { flex: 1; display: flex; flex-direction: column; overflow: hidden; }

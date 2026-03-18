@@ -1,0 +1,60 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.label {
+  font-size: 11px;
+  color: var(--text2);
+  font-weight: 500;
+  letter-spacing: .05em;
+}
+
+.actions { display: flex; gap: 6px; }
+
+.btn {
+  background: var(--bg3);
+  color: var(--text1);
+  padding: 4px 10px;
+  font-size: 11px;
+}
+
+.btnPrimary {
+  background: var(--purple-bg);
+  color: var(--purple);
+  padding: 4px 10px;
+  font-size: 11px;
+}
+
+.pre {
+  flex: 1;
+  overflow: auto;
+  padding: 14px 18px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--text0);
+  background: var(--bg0);
+  white-space: pre;
+  margin: 0;
+}
+
+.empty {
+  color: var(--text2);
+  font-size: 12px;
+  padding: 32px 20px;
+  text-align: center;
+  line-height: 1.8;
+}
+.empty strong { color: var(--text1); }

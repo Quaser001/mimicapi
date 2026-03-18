@@ -1,0 +1,21 @@
+{
+  "name": "mimicapi-server",
+  "version": "0.1.0",
+  "description": "MimicAPI local mock server — zero proprietary dependencies",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "mimicapi": "./bin/mimicapi.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev":   "node --watch src/index.js"
+  },
+  "dependencies": {
+    "commander":     "^12.0.0",
+    "express":       "^4.18.3",
+    "js-yaml":       "^4.1.0",
+    "@faker-js/faker": "^8.4.1"
+  },
+  "license": "MIT"
+}

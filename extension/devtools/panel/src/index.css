@@ -1,0 +1,75 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg0:      #0f0f0f;
+  --bg1:      #1a1a1a;
+  --bg2:      #242424;
+  --bg3:      #2e2e2e;
+  --border:   #333;
+  --text0:    #e8e8e8;
+  --text1:    #a0a0a0;
+  --text2:    #666;
+  --purple:   #7c6ff7;
+  --purple-bg:#1e1a3a;
+  --teal:     #34d399;
+  --teal-bg:  #0d2b22;
+  --amber:    #fbbf24;
+  --amber-bg: #2b1f07;
+  --red:      #f87171;
+  --red-bg:   #2b0f0f;
+  --blue:     #60a5fa;
+  --blue-bg:  #0f1f38;
+  --font-mono: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --radius:   6px;
+}
+
+html, body, #root {
+  height: 100%;
+  background: var(--bg0);
+  color: var(--text0);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg1); }
+::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #444; }
+
+button {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  cursor: pointer;
+  border: none;
+  border-radius: var(--radius);
+  padding: 5px 12px;
+  transition: opacity .15s, background .15s;
+}
+button:hover   { opacity: .85; }
+button:active  { opacity: .7; }
+button:disabled{ opacity: .4; cursor: not-allowed; }
+
+/* ── Prism.js YAML syntax highlighting (dark theme) ──────────────────────── */
+code[class*="language-"],
+pre[class*="language-"] {
+  color: var(--text0);
+  background: none;
+  font-family: var(--font-mono);
+  text-align: left;
+  white-space: pre;
+  word-spacing: normal;
+  word-break: normal;
+  tab-size: 2;
+}
+.token.key, .token.atrule, .token.attr-name { color: var(--purple); }
+.token.string, .token.attr-value            { color: var(--teal); }
+.token.number                               { color: var(--amber); }
+.token.boolean                              { color: var(--amber); }
+.token.null                                 { color: var(--red); }
+.token.punctuation                          { color: var(--text2); }
+.token.comment                              { color: var(--text2); font-style: italic; }
+.token.tag, .token.selector                 { color: var(--blue); }
+.token.important                            { color: var(--red); }
+

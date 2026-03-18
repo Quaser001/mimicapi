@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MimicAPI Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:     #080810; --bg1: #0f0f1a; --bg2: #141428; --bg3: #1c1c38;
+  --border: rgba(124,111,247,0.15);
+  --purple: #7c6ff7; --purple2: #a99ff9;
+  --teal:   #34d399; --amber: #fbbf24;
+  --red:    #f87171; --blue: #60a5fa;
+  --text0:  #f0eeff; --text1: #a89de8; --text2: #5a5480;
+  --mono:   'JetBrains Mono', monospace;
+  --sans:   'Syne', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg); color: var(--text0);
+  font-family: var(--sans); font-size: 13px;
+  min-height: 100vh;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(124,111,247,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124,111,247,0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none; z-index: 0;
+}
+
+/* Layout */
+.layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+aside {
+  width: 220px; flex-shrink: 0;
+  background: var(--bg1);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  position: sticky; top: 0; height: 100vh;
+}
+.sidebar-logo {
+  display: flex; align-items: center; gap: 10px;
+  padding: 20px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.logo-mark {
+  width: 28px; height: 28px; background: var(--purple); border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px; color: #fff;
+}
+.logo-name { font-size: 15px; font-weight: 700; }
+.logo-sub  { font-size: 10px; color: var(--text2); font-family: var(--mono); }
+.sidebar-nav { padding: 12px 10px; flex: 1; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: 8px;
+  font-size: 13px; color: var(--text1); cursor: pointer;
+  transition: background .15s, color .15s;
+  user-select: none;
+}
+.nav-item:hover   { background: var(--bg2); color: var(--text0); }
+.nav-item.active  { background: rgba(124,111,247,0.12); color: var(--purple2); }
+.nav-icon { font-family: var(--mono); font-size: 11px; width: 18px; text-align: center; }
+.server-status {
+  margin: 10px; padding: 12px;
+  background: var(--bg2); border-radius: 10px;
+  border: 1px solid var(--border);
+}
+.status-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+.status-dot.on  { background: var(--teal); box-shadow: 0 0 6px var(--teal); animation: glow 2s infinite; }
+.status-dot.off { background: var(--text2); }
+@keyframes glow { 0%,100%{opacity:1} 50%{opacity:.5} }
+.status-label { font-size: 11px; color: var(--text1); margin-top: 6px; font-family: var(--mono); }
+.status-url   { font-size: 11px; color: var(--purple2); font-family: var(--mono); word-break: break-all; margin-top: 2px; }
+
+/* Main */
+main { flex: 1; padding: 28px; overflow-x: hidden; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* Header */
+.page-header { margin-bottom: 24px; }
+.page-title  { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.page-sub    { font-size: 13px; color: var(--text2); font-family: var(--mono); }
+
+/* Stats row */
+.stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 28px; }
+.stat {
+  background: var(--bg1); border: 1px solid var(--border); border-radius: 12px;
+  padding: 16px 18px;
+}
+.stat-val  { font-size: 26px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+.stat-lab  { font-size: 11px; color: var(--text2); font-family: var(--mono); }
+.c-purple  { color: var(--purple2); }
+.c-teal    { color: var(--teal); }
+.c-amber   { color: var(--amber); }
+.c-text    { color: var(--text1); }
+
+/* Routes table */
+.card {
+  background: var(--bg1); border: 1px solid var(--border); border-radius: 14px;
+  overflow: hidden; margin-bottom: 20px;
+}
+.card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.card-title { font-size: 13px; font-weight: 600; }
+.card-actions { display: flex; gap: 8px; }
+.btn {
+  font-family: var(--sans); font-size: 11px; font-weight: 600;
+  padding: 5px 12px; border-radius: 7px; cursor: pointer; border: none;
+  transition: opacity .15s;
+}
+.btn:hover { opacity: .8; }
+.btn-ghost   { background: var(--bg3); color: var(--text1); border: 1px solid var(--border); }
+.btn-primary { background: var(--purple); color: #fff; }
+
+table { width: 100%; border-collapse: collapse; }
+th {
+  font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text2); font-family: var(--mono); font-weight: 500;
+  padding: 10px 16px; text-align: left;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+}
+td { padding: 12px 16px; border-bottom: 1px solid rgba(124,111,247,0.06); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(124,111,247,0.04); }
+
+.method {
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  padding: 2px 7px; border-radius: 4px; white-space: nowrap;
+}
+.m-get    { background: rgba(52,211,153,0.1);  color: var(--teal); }
+.m-post   { background: rgba(124,111,247,0.12); color: var(--purple2); }
+.m-put    { background: rgba(251,191,36,0.1);  color: var(--amber); }
+.m-patch  { background: rgba(251,191,36,0.08); color: var(--amber); }
+.m-delete { background: rgba(248,113,113,0.1); color: var(--red); }
+
+.path-cell { font-family: var(--mono); font-size: 12px; color: var(--text0); }
+.path-param { color: var(--purple2); }
+
+.status-badge {
+  font-family: var(--mono); font-size: 10px; padding: 1px 7px; border-radius: 4px;
+}
+.s-2xx { background: rgba(52,211,153,0.1);  color: var(--teal); }
+.s-4xx { background: rgba(251,191,36,0.1);  color: var(--amber); }
+.s-5xx { background: rgba(248,113,113,0.1); color: var(--red); }
+
+/* Log */
+.log-container {
+  padding: 14px 16px;
+  font-family: var(--mono); font-size: 11.5px; line-height: 2;
+  max-height: 360px; overflow-y: auto;
+}
+.log-entry { display: flex; gap: 14px; align-items: center; border-bottom: 1px solid rgba(124,111,247,0.05); padding: 3px 0; }
+.log-time   { color: var(--text2); width: 70px; flex-shrink: 0; }
+.log-method { width: 60px; flex-shrink: 0; }
+.log-path   { color: var(--text1); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.log-status { width: 44px; flex-shrink: 0; text-align: right; }
+.log-dur    { color: var(--text2); width: 50px; text-align: right; flex-shrink: 0; }
+.log-empty  { color: var(--text2); text-align: center; padding: 32px; }
+
+/* Import panel */
+.import-area {
+  padding: 24px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.import-textarea {
+  width: 100%; height: 260px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+  color: var(--text0); font-family: var(--mono); font-size: 12px;
+  padding: 14px; resize: vertical; outline: none; line-height: 1.7;
+}
+.import-textarea:focus { border-color: var(--purple); }
+.import-hint { font-size: 12px; color: var(--text2); }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside>
+    <div class="sidebar-logo">
+      <div class="logo-mark">M</div>
+      <div>
+        <div class="logo-name">MimicAPI</div>
+        <div class="logo-sub">mock dashboard</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-item active" onclick="showPage('routes',this)">
+        <span class="nav-icon">≋</span> Routes
+      </div>
+      <div class="nav-item" onclick="showPage('log',this)">
+        <span class="nav-icon">◈</span> Request log
+      </div>
+      <div class="nav-item" onclick="showPage('spec',this)">
+        <span class="nav-icon">{ }</span> Spec viewer
+      </div>
+      <div class="nav-item" onclick="showPage('import',this)">
+        <span class="nav-icon">↑</span> Import spec
+      </div>
+    </nav>
+
+    <div class="server-status">
+      <div style="display:flex;align-items:center;gap:7px">
+        <span class="status-dot on" id="statusDot"></span>
+        <span style="font-size:12px;font-weight:600">Running</span>
+      </div>
+      <div class="status-label">mock server</div>
+      <div class="status-url" id="serverUrl">http://localhost:3001</div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main>
+
+    <!-- Routes page -->
+    <div class="page active" id="page-routes">
+      <div class="page-header">
+        <div class="page-title">Mock routes</div>
+        <div class="page-sub">All endpoints registered from the loaded spec</div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="stat-val c-purple" id="totalRoutes">—</div><div class="stat-lab">total routes</div></div>
+        <div class="stat"><div class="stat-val c-teal"   id="totalHits">0</div><div class="stat-lab">requests served</div></div>
+        <div class="stat"><div class="stat-val c-amber"  id="specTitle">—</div><div class="stat-lab">spec title</div></div>
+        <div class="stat"><div class="stat-val c-text"   id="serverPort">3001</div><div class="stat-lab">port</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">Registered routes</span>
+          <div class="card-actions">
+            <button class="btn btn-ghost" onclick="copySpec()">Copy spec URL</button>
+            <button class="btn btn-primary" onclick="loadRoutes()">Refresh</button>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Path</th>
+              <th>Status</th>
+              <th>Hits</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="routesBody">
+            <tr><td colspan="5" style="text-align:center;color:var(--text2);padding:32px;font-family:var(--mono)">Loading routes…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Request log page -->
+    <div class="page" id="page-log">
+      <div class="page-header">
+        <div class="page-title">Request log</div>
+        <div class="page-sub">Live log of all requests hitting the mock server</div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">Live requests</span>
+          <button class="btn btn-ghost" onclick="clearLog()">Clear log</button>
+        </div>
+        <div class="log-container" id="logContainer">
+          <div class="log-empty">No requests yet — hit an endpoint to see logs here.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Spec viewer page -->
+    <div class="page" id="page-spec">
+      <div class="page-header">
+        <div class="page-title">Spec viewer</div>
+        <div class="page-sub">The OpenAPI 3.0 spec currently loaded into this server</div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">OpenAPI 3.0.3</span>
+          <div class="card-actions">
+            <button class="btn btn-ghost" onclick="downloadSpec()">Download .yaml</button>
+          </div>
+        </div>
+        <pre id="specContent" style="padding:20px;font-family:var(--mono);font-size:12px;color:var(--text1);overflow:auto;max-height:600px;line-height:1.7">Loading spec…</pre>
+      </div>
+    </div>
+
+    <!-- Import page -->
+    <div class="page" id="page-import">
+      <div class="page-header">
+        <div class="page-title">Import spec</div>
+        <div class="page-sub">Paste a new OpenAPI YAML to hot-reload routes without restarting</div>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="card-title">Paste OpenAPI YAML</span></div>
+        <div class="import-area">
+          <textarea class="import-textarea" id="importYaml" placeholder="openapi: 3.0.3&#10;info:&#10;  title: My API&#10;  version: 1.0.0&#10;paths:&#10;  /users:&#10;    get: ..."></textarea>
+          <div class="import-hint">The server will reload routes immediately. Existing request log is preserved.</div>
+          <div>
+            <button class="btn btn-primary" onclick="importSpec()">Import &amp; reload routes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const API = ''  // same origin
+
+let routeHits = {}
+let logEntries = []
+
+// ── Navigation ──────────────────────────────────────────────────────────────
+
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'))
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'))
+  document.getElementById('page-' + id).classList.add('active')
+  el.classList.add('active')
+  if (id === 'routes') loadRoutes()
+  if (id === 'spec')   loadSpec()
+  if (id === 'log')    renderLog()
+}
+
+// ── Routes ───────────────────────────────────────────────────────────────────
+
+async function loadRoutes() {
+  try {
+    const res  = await fetch(API + '/__mimicapi/info')
+    const data = await res.json()
+
+    document.getElementById('totalRoutes').textContent = data.routes?.length ?? 0
+    document.getElementById('specTitle').textContent   = data.title ?? '—'
+    document.getElementById('serverPort').textContent  = data.port  ?? '3001'
+    document.getElementById('serverUrl').textContent   = `http://localhost:${data.port ?? 3001}`
+
+    const tbody = document.getElementById('routesBody')
+    if (!data.routes || data.routes.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text2);padding:32px;font-family:var(--mono)">No routes loaded.</td></tr>'
+      return
+    }
+
+    const baseUrl = `http://localhost:${data.port ?? 3001}`
+    tbody.innerHTML = data.routes.map((r, i) => {
+      const mc    = methodClass(r.method)
+      const path  = r.path.replace(/\{([^}]+)\}/g, '<span class="path-param">{$1}</span>')
+      const sc    = statusClass(r.status)
+      const hits  = routeHits[r.method + r.path] ?? 0
+      const curl  = `curl ${baseUrl}${r.path} -X ${r.method}`
+      return `<tr>
+        <td><span class="method ${mc}">${r.method}</span></td>
+        <td class="path-cell">${path}</td>
+        <td><span class="status-badge ${sc}">${r.status}</span></td>
+        <td style="color:var(--text2);font-family:var(--mono)">${hits}</td>
+        <td><button class="btn btn-ghost" id="curl-${i}" onclick="copyCurl('${curl.replace(/'/g, "\\'")}'  , 'curl-${i}')" style="font-size:10px;padding:3px 8px">Copy curl</button></td>
+      </tr>`
+    }).join('')
+  } catch {
+    document.getElementById('routesBody').innerHTML =
+      '<tr><td colspan="4" style="text-align:center;color:var(--red);padding:32px;font-family:var(--mono)">Could not load route info — is the server running?</td></tr>'
+  }
+}
+
+// ── Spec ─────────────────────────────────────────────────────────────────────
+
+async function loadSpec() {
+  try {
+    const res  = await fetch(API + '/__mimicapi/spec')
+    const text = await res.text()
+    document.getElementById('specContent').textContent = text
+  } catch {
+    document.getElementById('specContent').textContent = 'Could not load spec.'
+  }
+}
+
+function downloadSpec() {
+  const content = document.getElementById('specContent').textContent
+  const blob = new Blob([content], { type: 'text/yaml' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = 'mimicapi-spec.yaml'
+  a.click()
+}
+
+function copySpec() {
+  navigator.clipboard.writeText(location.origin + '/__mimicapi/spec')
+  alert('Spec URL copied: ' + location.origin + '/__mimicapi/spec')
+}
+
+// ── Log ───────────────────────────────────────────────────────────────────────
+
+function renderLog() {
+  const el = document.getElementById('logContainer')
+  if (logEntries.length === 0) {
+    el.innerHTML = '<div class="log-empty">No requests yet — hit an endpoint to see logs here.</div>'
+    return
+  }
+  el.innerHTML = logEntries.slice().reverse().map(e => `
+    <div class="log-entry">
+      <span class="log-time">${e.time}</span>
+      <span class="log-method"><span class="method ${methodClass(e.method)}">${e.method}</span></span>
+      <span class="log-path">${e.path}</span>
+      <span class="log-status"><span class="status-badge ${statusClass(e.status)}">${e.status}</span></span>
+      <span class="log-dur">${e.dur}ms</span>
+    </div>`).join('')
+}
+
+function clearLog() { logEntries = []; renderLog() }
+
+// Poll for new log entries
+setInterval(async () => {
+  try {
+    const res  = await fetch(API + '/__mimicapi/log')
+    const data = await res.json()
+    if (data.entries) {
+      logEntries = data.entries
+      document.getElementById('totalHits').textContent = logEntries.length
+      if (document.getElementById('page-log').classList.contains('active')) renderLog()
+    }
+  } catch {}
+}, 2000)
+
+// ── Import ────────────────────────────────────────────────────────────────────
+
+async function importSpec() {
+  const yaml = document.getElementById('importYaml').value.trim()
+  if (!yaml) return alert('Paste a YAML spec first.')
+  try {
+    const res = await fetch(API + '/__mimicapi/import', {
+      method:  'POST',
+      headers: { 'content-type': 'text/plain' },
+      body:    yaml,
+    })
+    const data = await res.json()
+    if (data.ok) {
+      alert(`Imported. ${data.routes} routes now active.`)
+      showPage('routes', document.querySelector('.nav-item'))
+    } else {
+      alert('Import failed: ' + (data.error ?? 'unknown error'))
+    }
+  } catch (e) {
+    alert('Request failed: ' + e.message)
+  }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function methodClass(m) {
+  return { GET:'m-get', POST:'m-post', PUT:'m-put', PATCH:'m-patch', DELETE:'m-delete' }[m] ?? 'm-get'
+}
+function statusClass(s) {
+  if (!s || s < 300) return 's-2xx'
+  if (s < 500)       return 's-4xx'
+  return 's-5xx'
+}
+
+function copyCurl(cmd, btnId) {
+  navigator.clipboard.writeText(cmd)
+  const btn = document.getElementById(btnId)
+  if (btn) {
+    const orig = btn.textContent
+    btn.textContent = 'Copied!'
+    btn.style.color = 'var(--teal)'
+    setTimeout(() => { btn.textContent = orig; btn.style.color = '' }, 1500)
+  }
+}
+
+function now() {
+  const d = new Date()
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadRoutes()
+</script>
+</body>
+</html>

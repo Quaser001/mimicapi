@@ -1,0 +1,18 @@
+{
+  "name": "mimicapi",
+  "version": "0.1.0",
+  "description": "Record real API traffic → auto-generate OpenAPI 3.0 spec + local mock server. Zero config, zero cloud, fully FOSS.",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "server",
+    "extension/devtools/panel"
+  ],
+  "scripts": {
+    "dev:panel":  "npm run dev --workspace=extension/devtools/panel",
+    "build:panel":"npm run build --workspace=extension/devtools/panel",
+    "dev:server": "npm run dev --workspace=server",
+    "test":       "node --test shared/tests/*.test.js"
+  },
+  "license": "MIT"
+}

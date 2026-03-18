@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MimicAPI — Record. Generate. Mock.</title>
+<meta name="description" content="Record real API traffic from your browser. Auto-generate OpenAPI 3.0 specs. Spin up a local mock server. Zero config, zero cloud, fully FOSS."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:      #080810;
+  --bg1:     #0f0f1a;
+  --bg2:     #141428;
+  --bg3:     #1c1c38;
+  --border:  rgba(124,111,247,0.15);
+  --purple:  #7c6ff7;
+  --purple2: #a99ff9;
+  --teal:    #34d399;
+  --amber:   #fbbf24;
+  --red:     #f87171;
+  --text0:   #f0eeff;
+  --text1:   #a89de8;
+  --text2:   #5a5480;
+  --mono:    'JetBrains Mono', monospace;
+  --display: 'Syne', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text0);
+  font-family: var(--display);
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ── Grid noise background ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(124,111,247,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124,111,247,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Glow orbs ── */
+.orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(120px);
+  pointer-events: none;
+  z-index: 0;
+}
+.orb-1 { width: 600px; height: 600px; background: rgba(124,111,247,0.12); top: -200px; right: -100px; }
+.orb-2 { width: 400px; height: 400px; background: rgba(52,211,153,0.06); bottom: 20%; left: -100px; }
+
+/* ── Nav ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 5%;
+  height: 64px;
+  background: rgba(8,8,16,0.7);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.nav-mark {
+  width: 32px; height: 32px;
+  background: var(--purple);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 16px; color: #fff;
+}
+.nav-name { font-size: 17px; font-weight: 700; color: var(--text0); }
+.nav-links { display: flex; gap: 32px; }
+.nav-links a {
+  color: var(--text1); font-size: 14px; text-decoration: none;
+  transition: color .2s;
+}
+.nav-links a:hover { color: var(--text0); }
+.nav-cta {
+  background: var(--purple);
+  color: #fff;
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: opacity .2s;
+}
+.nav-cta:hover { opacity: .85; }
+
+/* ── Sections ── */
+section { position: relative; z-index: 1; }
+.container { max-width: 1080px; margin: 0 auto; padding: 0 5%; }
+
+/* ── Hero ── */
+#hero {
+  min-height: 100vh;
+  display: flex; align-items: center;
+  padding-top: 64px;
+}
+.hero-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  width: 100%;
+  padding: 80px 0;
+}
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 12px; color: var(--purple2);
+  background: rgba(124,111,247,0.1);
+  border: 1px solid var(--border);
+  padding: 4px 12px; border-radius: 20px;
+  margin-bottom: 24px;
+  letter-spacing: .05em;
+}
+.hero-eyebrow::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--teal); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+h1 {
+  font-size: clamp(36px, 5vw, 58px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -.02em;
+  margin-bottom: 20px;
+}
+h1 em { font-style: normal; color: var(--purple2); }
+
+.hero-sub {
+  font-size: 18px;
+  color: var(--text1);
+  line-height: 1.7;
+  margin-bottom: 36px;
+  max-width: 480px;
+}
+
+.hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--purple);
+  color: #fff;
+  font-family: var(--display); font-size: 15px; font-weight: 600;
+  padding: 12px 24px; border-radius: 10px;
+  text-decoration: none;
+  transition: opacity .2s, transform .2s;
+}
+.btn-primary:hover { opacity: .88; transform: translateY(-1px); }
+.btn-ghost {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text1);
+  font-family: var(--display); font-size: 15px; font-weight: 600;
+  padding: 12px 24px; border-radius: 10px;
+  text-decoration: none;
+  transition: border-color .2s, color .2s, transform .2s;
+}
+.btn-ghost:hover { border-color: var(--purple); color: var(--purple2); transform: translateY(-1px); }
+
+.hero-badges {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  margin-top: 28px;
+}
+.badge {
+  font-family: var(--mono); font-size: 11px;
+  padding: 3px 10px; border-radius: 4px;
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--text1);
+}
+.badge-green { background: rgba(52,211,153,0.08); border-color: rgba(52,211,153,0.2); color: var(--teal); }
+.badge-purple { background: rgba(124,111,247,0.1); border-color: rgba(124,111,247,0.2); color: var(--purple2); }
+
+/* ── Terminal ── */
+.terminal {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0,0,0,.5);
+}
+.terminal-bar {
+  display: flex; align-items: center; gap: 6px;
+  padding: 12px 16px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot-r { background: #ff5f56; }
+.dot-y { background: #ffbd2e; }
+.dot-g { background: #27c93f; }
+.terminal-title { font-family: var(--mono); font-size: 11px; color: var(--text2); margin-left: auto; margin-right: auto; }
+.terminal-body { padding: 20px; font-family: var(--mono); font-size: 12.5px; line-height: 1.8; }
+.line { display: flex; gap: 10px; margin-bottom: 2px; }
+.prompt { color: var(--purple2); flex-shrink: 0; }
+.cmd   { color: var(--text0); }
+.out   { color: var(--text2); padding-left: 20px; }
+.out-green  { color: var(--teal); padding-left: 20px; }
+.out-amber  { color: var(--amber); padding-left: 20px; }
+.out-purple { color: var(--purple2); padding-left: 20px; }
+.cursor { display: inline-block; width: 7px; height: 14px; background: var(--purple2); animation: blink 1s infinite; vertical-align: middle; }
+@keyframes blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+
+/* ── How it works ── */
+#how { padding: 120px 0; }
+.section-eyebrow {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+  color: var(--purple2); text-transform: uppercase; margin-bottom: 12px;
+}
+.section-title {
+  font-size: clamp(28px, 4vw, 42px); font-weight: 800;
+  letter-spacing: -.02em; line-height: 1.1;
+  margin-bottom: 16px;
+}
+.section-sub {
+  font-size: 17px; color: var(--text1); max-width: 520px; line-height: 1.7;
+  margin-bottom: 56px;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.step {
+  background: var(--bg1);
+  padding: 32px 28px;
+  transition: background .2s;
+}
+.step:hover { background: var(--bg2); }
+.step-num {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--text2); margin-bottom: 16px;
+}
+.step-icon {
+  font-size: 28px; margin-bottom: 14px;
+  display: block;
+  font-family: var(--mono);
+  color: var(--purple2);
+  font-weight: 500;
+}
+.step h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+.step p  { font-size: 14px; color: var(--text1); line-height: 1.6; }
+
+/* ── Features ── */
+#features { padding: 80px 0 120px; }
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+.feat {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px 28px;
+  transition: border-color .2s, transform .2s;
+}
+.feat:hover { border-color: rgba(124,111,247,0.35); transform: translateY(-2px); }
+.feat-tag {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--purple2);
+  background: rgba(124,111,247,0.08);
+  padding: 2px 8px; border-radius: 4px;
+  display: inline-block; margin-bottom: 14px;
+  letter-spacing: .05em;
+}
+.feat h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+.feat p  { font-size: 13.5px; color: var(--text1); line-height: 1.65; }
+
+/* ── Install ── */
+#install {
+  padding: 80px 0 120px;
+}
+.install-card {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+}
+.install-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+}
+.itab {
+  font-family: var(--mono); font-size: 12px;
+  padding: 14px 24px;
+  color: var(--text2);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color .2s;
+  user-select: none;
+  background: none; border-top: none; border-left: none; border-right: none;
+}
+.itab.active { color: var(--purple2); border-bottom-color: var(--purple); }
+.install-body { padding: 28px; }
+.code-block {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 20px;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 2;
+  color: var(--text0);
+  overflow-x: auto;
+}
+.code-block .c-comment { color: var(--text2); }
+.code-block .c-cmd     { color: var(--text0); }
+.code-block .c-out     { color: var(--teal); }
+.code-block .c-url     { color: var(--purple2); }
+
+/* ── Stack ── */
+#stack { padding: 80px 0 120px; }
+.stack-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 48px;
+}
+.stack-item {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  transition: border-color .2s;
+}
+.stack-item:hover { border-color: rgba(124,111,247,0.3); }
+.stack-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.stack-role { font-size: 12px; color: var(--text2); font-family: var(--mono); }
+.stack-lic  { font-size: 10px; color: var(--teal); margin-top: 6px; font-family: var(--mono); }
+
+/* ── Footer ── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 40px 5%;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 13px; color: var(--text2);
+  position: relative; z-index: 1;
+}
+footer a { color: var(--purple2); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+
+/* ── Animations ── */
+.fade-up {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity .6s ease, transform .6s ease;
+}
+.fade-up.visible { opacity: 1; transform: translateY(0); }
+
+/* ── Responsive ── */
+@media (max-width: 860px) {
+  .hero-inner { grid-template-columns: 1fr; }
+  .steps      { grid-template-columns: 1fr; }
+  .features-grid { grid-template-columns: 1fr; }
+  .stack-grid { grid-template-columns: repeat(2,1fr); }
+  .nav-links  { display: none; }
+  footer      { flex-direction: column; gap: 12px; text-align: center; }
+}
+
+/* ── Tab switching ── */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+</style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<!-- Nav -->
+<nav>
+  <a class="nav-logo" href="#">
+    <div class="nav-mark">M</div>
+    <span class="nav-name">MimicAPI</span>
+  </a>
+  <div class="nav-links">
+    <a href="#how">How it works</a>
+    <a href="#features">Features</a>
+    <a href="#install">Install</a>
+    <a href="https://github.com/YOUR_USERNAME/mimicapi" target="_blank">GitHub</a>
+  </div>
+  <a class="nav-cta" href="https://github.com/YOUR_USERNAME/mimicapi" target="_blank">
+    Get the extension →
+  </a>
+</nav>
+
+<!-- Hero -->
+<section id="hero">
+  <div class="container">
+    <div class="hero-inner">
+      <div>
+        <div class="hero-eyebrow">FOSS Hack 2026 · Open Source</div>
+        <h1>Record. Generate.<br><em>Mock.</em></h1>
+        <p class="hero-sub">
+          MimicAPI captures real API traffic from your browser,
+          auto-generates a valid OpenAPI 3.0 spec, and spins up
+          a local mock server — in under 30 seconds.
+        </p>
+        <div class="hero-ctas">
+          <a class="btn-primary" href="https://github.com/YOUR_USERNAME/mimicapi" target="_blank">
+            Install extension
+          </a>
+          <a class="btn-ghost" href="#how">See how it works</a>
+        </div>
+        <div class="hero-badges">
+          <span class="badge badge-green">MIT licensed</span>
+          <span class="badge badge-purple">No cloud required</span>
+          <span class="badge badge-green">Zero proprietary APIs</span>
+          <span class="badge">Chrome MV3</span>
+        </div>
+      </div>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="dot dot-r"></span>
+          <span class="dot dot-y"></span>
+          <span class="dot dot-g"></span>
+          <span class="terminal-title">MimicAPI — devtools</span>
+        </div>
+        <div class="terminal-body">
+          <div class="line"><span class="prompt">$</span><span class="cmd">browse httpbin.org</span></div>
+          <div class="out-green">✓ 12 requests captured</div>
+          <div class="out">  GET  /get          200  42ms</div>
+          <div class="out">  POST /post          200  38ms</div>
+          <div class="out">  GET  /users/{id}   200  51ms</div>
+          <br/>
+          <div class="line"><span class="prompt">$</span><span class="cmd">click "Build spec"</span></div>
+          <div class="out-green">✓ OpenAPI 3.0 spec generated</div>
+          <div class="out">  8 endpoints · 3 path params</div>
+          <div class="out">  schema inferred from real data</div>
+          <br/>
+          <div class="line"><span class="prompt">$</span><span class="cmd">npx mimicapi serve spec.yaml</span></div>
+          <div class="out-purple">  MimicAPI mock server running</div>
+          <div class="out-purple">  ➜  http://localhost:3001</div>
+          <div class="out-green">✓ 8 routes registered</div>
+          <br/>
+          <div class="line"><span class="prompt">$</span><span class="cursor"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section id="how">
+  <div class="container">
+    <div class="fade-up">
+      <div class="section-eyebrow">How it works</div>
+      <h2 class="section-title">From real traffic to<br>working mock in 3 steps</h2>
+      <p class="section-sub">No YAML writing. No manual spec maintenance. Just browse and build.</p>
+    </div>
+    <div class="steps fade-up">
+      <div class="step">
+        <div class="step-num">01</div>
+        <span class="step-icon">{ }</span>
+        <h3>Install &amp; capture</h3>
+        <p>Load the Chrome extension. Every fetch and XHR call on any site is silently intercepted and stored — including headers, bodies, and response schemas.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <span class="step-icon">≋</span>
+        <h3>Generate spec</h3>
+        <p>Click Build Spec. MimicAPI infers JSON Schemas from real response bodies, templates path parameters, and outputs a valid OpenAPI 3.0.3 YAML file.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <span class="step-icon">▶</span>
+        <h3>Start mock server</h3>
+        <p>Run <code style="font-family:var(--mono);font-size:12px;color:var(--purple2)">npx mimicapi serve spec.yaml</code>. Your frontend hits localhost. Real responses, faker fallback, zero internet required.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features">
+  <div class="container">
+    <div class="fade-up">
+      <div class="section-eyebrow">Features</div>
+      <h2 class="section-title">Everything a frontend dev needs</h2>
+    </div>
+    <div class="features-grid fade-up">
+      <div class="feat">
+        <span class="feat-tag">INTERCEPTION</span>
+        <h3>Full fetch + XHR capture</h3>
+        <p>Patches window.fetch and XMLHttpRequest at document_start — before any page script executes. Captures method, URL, headers, request body, response body, status, and timing.</p>
+      </div>
+      <div class="feat">
+        <span class="feat-tag">SMART ROUTING</span>
+        <h3>Auto path templating</h3>
+        <p>Numeric IDs, UUIDs, and hashes in URL segments are automatically replaced with named parameters. /users/42 and /users/99 merge into /users/{userId}.</p>
+      </div>
+      <div class="feat">
+        <span class="feat-tag">SCHEMA</span>
+        <h3>Deep schema inference</h3>
+        <p>Infers JSON Schema draft-7 from real response bodies. Handles nested objects, arrays, nullable fields, and detects formats — date-time, email, UUID, URI.</p>
+      </div>
+      <div class="feat">
+        <span class="feat-tag">MOCK SERVER</span>
+        <h3>Realistic faker fallback</h3>
+        <p>If exact response data isn't captured, the server generates realistic fake data from the inferred schema using @faker-js/faker — emails, names, dates, UUIDs.</p>
+      </div>
+      <div class="feat">
+        <span class="feat-tag">FOSS</span>
+        <h3>Zero proprietary dependencies</h3>
+        <p>The Chrome extension has zero npm runtime dependencies. The server uses only MIT-licensed packages. No cloud APIs, no accounts, no telemetry. Your data stays local.</p>
+      </div>
+      <div class="feat">
+        <span class="feat-tag">DASHBOARD</span>
+        <h3>Local web dashboard</h3>
+        <p>The mock server ships with a web dashboard at /dashboard — inspect all registered routes, view captured response data, and import new specs without restarting.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Install -->
+<section id="install">
+  <div class="container">
+    <div class="fade-up">
+      <div class="section-eyebrow">Install</div>
+      <h2 class="section-title">Up and running in 2 minutes</h2>
+    </div>
+    <div class="install-card fade-up">
+      <div class="install-tabs">
+        <button class="itab active" onclick="showTab('ext')">Extension</button>
+        <button class="itab" onclick="showTab('server')">Mock server</button>
+        <button class="itab" onclick="showTab('dev')">Development</button>
+      </div>
+      <div class="install-body">
+
+        <div class="tab-panel active" id="tab-ext">
+          <div class="code-block">
+<span class="c-comment"># 1. Clone the repo</span>
+<span class="c-cmd">git clone https://github.com/YOUR_USERNAME/mimicapi.git</span>
+<span class="c-cmd">cd mimicapi</span>
+
+<span class="c-comment"># 2. Build the devtools panel</span>
+<span class="c-cmd">cd extension/devtools/panel && npm install && npm run build</span>
+
+<span class="c-comment"># 3. Load in Chrome</span>
+<span class="c-out">chrome://extensions → Developer mode ON → Load unpacked → select extension/</span>
+
+<span class="c-comment"># 4. Open DevTools on any site → MimicAPI tab</span>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="tab-server">
+          <div class="code-block">
+<span class="c-comment"># Install the server</span>
+<span class="c-cmd">cd server && npm install</span>
+
+<span class="c-comment"># Serve a spec file</span>
+<span class="c-cmd">node src/index.js serve spec.yaml --port 3001</span>
+
+<span class="c-out">  MimicAPI mock server running</span>
+<span class="c-url">  ➜  http://localhost:3001</span>
+<span class="c-url">  ➜  http://localhost:3001/dashboard</span>
+<span class="c-out">  ➜  8 routes registered</span>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="tab-dev">
+          <div class="code-block">
+<span class="c-comment"># Install all workspaces</span>
+<span class="c-cmd">npm install</span>
+
+<span class="c-comment"># Watch + rebuild panel on changes</span>
+<span class="c-cmd">npm run dev:panel</span>
+
+<span class="c-comment"># Run tests</span>
+<span class="c-cmd">npm test</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stack -->
+<section id="stack">
+  <div class="container">
+    <div class="fade-up">
+      <div class="section-eyebrow">Tech stack</div>
+      <h2 class="section-title">100% open source</h2>
+      <p class="section-sub">Every dependency is MIT-licensed. No proprietary services anywhere in the stack.</p>
+    </div>
+    <div class="stack-grid fade-up">
+      <div class="stack-item">
+        <div class="stack-name">Chrome MV3</div>
+        <div class="stack-role">extension</div>
+        <div class="stack-lic">browser API</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-name">React 18</div>
+        <div class="stack-role">devtools panel</div>
+        <div class="stack-lic">MIT</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-name">Vite 5</div>
+        <div class="stack-role">panel bundler</div>
+        <div class="stack-lic">MIT</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-name">Express 4</div>
+        <div class="stack-role">mock server</div>
+        <div class="stack-lic">MIT</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-name">js-yaml</div>
+        <div class="stack-role">spec parsing</div>
+        <div class="stack-lic">MIT</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-name">Faker.js</div>
+        <div class="stack-role">response generation</div>
+        <div class="stack-lic">MIT</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-name">Commander</div>
+        <div class="stack-role">CLI</div>
+        <div class="stack-lic">MIT</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-name">Vanilla JS</div>
+        <div class="stack-role">interceptor engine</div>
+        <div class="stack-lic">zero deps</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div>
+    Built for <a href="https://fossunited.org/fosshack/2026" target="_blank">FOSS Hack 2026</a> ·
+    MIT License ·
+    <a href="https://github.com/YOUR_USERNAME/mimicapi" target="_blank">GitHub</a>
+  </div>
+  <div>No cloud. No accounts. No telemetry.</div>
+</footer>
+
+<script>
+// Tab switching
+function showTab(id) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'))
+  document.querySelectorAll('.itab').forEach(t => t.classList.remove('active'))
+  document.getElementById('tab-' + id).classList.add('active')
+  event.target.classList.add('active')
+}
+
+// Scroll fade-in
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible') })
+}, { threshold: 0.1 })
+document.querySelectorAll('.fade-up').forEach(el => obs.observe(el))
+</script>
+</body>
+</html>
