@@ -237,7 +237,7 @@ export function specToYAML(obj, indent = 0) {
 
   if (typeof obj === 'object') {
     const entries = Object.entries(obj).filter(([, v]) => v !== undefined)
-    if (entries.length === 0) return '{}'
+    if (entries.length === 0) return ''
     return entries.map(([key, value]) => {
       const yamlKey = /[^a-zA-Z0-9_\-/{}]/.test(key) ? `"${key}"` : key
       if (value === null || typeof value !== 'object') {

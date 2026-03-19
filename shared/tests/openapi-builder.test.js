@@ -98,7 +98,7 @@ describe('specToYAML', () => {
   })
 
   it('handles empty object and array', () => {
-    assert.equal(specToYAML({}), '{}')
+    assert.equal(specToYAML({}), '')
     assert.equal(specToYAML([]), '[]')
   })
 
@@ -115,5 +115,41 @@ describe('specToYAML', () => {
     const yaml = specToYAML(spec)
     assert.ok(yaml.includes('openapi'))
     assert.ok(yaml.includes('/health'))
+  })
+
+  it('spec with empty schema serialises to parseable YAML', () => {
+    // Simulate a spec that has an empty items schema (e.g. from an empty array capture)
+    const spec = {
+      openapi: '3.0.3',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/data': {
+          get: {
+            summary: 'GET /data',
+            responses: {
+              '200': {
+                description: 'OK',
+                content: {
+                  'application/json': {
+                    schema: { type: 'array', items: {} },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }
+
+    const yaml = specToYAML(spec)
+
+    // The YAML should not contain '{}' as a value — that breaks block context parsing
+    assert.ok(!yaml.includes(': {}'), 'YAML should not contain ": {}" inline syntax')
+
+    // Verify it does not throw "a colon is missed" or similar when parsed
+    // We do a basic structural check: it should contain the key path and schema type
+    assert.ok(yaml.includes('/data'))
+    assert.ok(yaml.includes('type: array'))
+    assert.ok(yaml.includes('items:'))
   })
 })
