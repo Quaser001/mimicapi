@@ -29,9 +29,11 @@ program
   .description('Start the mock server from a YAML or JSON spec file')
   .option('-p, --port <number>', 'Port to listen on', '3001')
   .option('--host <host>',       'Host to bind to',   'localhost')
+  .option('--delay <ms>',        'Add artificial delay to all responses in milliseconds', '0')
   .action((specFile, options) => {
-    const port = parseInt(options.port, 10)
-    const host = options.host
+    const port  = parseInt(options.port, 10)
+    const host  = options.host
+    const delay = parseInt(options.delay, 10) || 0
 
     // ── Read spec file with helpful error ──────────────────────────────────
     const specPath = resolve(process.cwd(), specFile)
@@ -87,6 +89,7 @@ program
       res.json({
         title:  spec?.info?.title ?? 'MimicAPI spec',
         port,
+        delay,
         routes: routes.map(r => ({ method: r.method, path: r.path, status: r.status })),
       })
     })
@@ -108,7 +111,7 @@ program
         specYaml       = req.body
 
         // Hot-reload: rebuild mock routes
-        const { router: newRouter } = buildRouter(newSpec, requestLog, port)
+        const { router: newRouter } = buildRouter(newSpec, requestLog, port, delay)
         mockRouter = newRouter
         console.log('  [import] Routes reloaded from imported spec')
 
@@ -125,7 +128,7 @@ program
     })
 
     // Mount mock routes from spec via a sub-router
-    let mockRouter = buildRouter(spec, requestLog, port).router
+    let mockRouter = buildRouter(spec, requestLog, port, delay).router
     app.use((req, res, next) => {
       // Delegate to current mockRouter (swappable for hot-reload)
       mockRouter(req, res, next)
@@ -146,7 +149,9 @@ program
       console.log(`  ➜  Mock:      ${url}`)
       console.log(`  ➜  Dashboard: ${url}/dashboard`)
       console.log(`  ➜  Spec:      ${specFile}`)
-      console.log(`  ➜  Routes:    ${routes.length} endpoints\n`)
+      console.log(`  ➜  Routes:    ${routes.length} endpoints`)
+      if (delay > 0) console.log(`  ➜  Delay:     ${delay}ms per response`)
+      console.log()
     })
   })
 

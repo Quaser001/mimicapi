@@ -235,6 +235,7 @@ tr:hover td { background: rgba(124,111,247,0.04); }
         <div class="stat"><div class="stat-val c-teal"   id="totalHits">0</div><div class="stat-lab">requests served</div></div>
         <div class="stat"><div class="stat-val c-amber"  id="specTitle">—</div><div class="stat-lab">spec title</div></div>
         <div class="stat"><div class="stat-val c-text"   id="serverPort">3001</div><div class="stat-lab">port</div></div>
+        <div class="stat"><div class="stat-val c-red"    id="serverDelay">0ms</div><div class="stat-lab">response delay</div></div>
       </div>
 
       <div class="card">
@@ -345,6 +346,7 @@ async function loadRoutes() {
     document.getElementById('totalRoutes').textContent = data.routes?.length ?? 0
     document.getElementById('specTitle').textContent   = data.title ?? '—'
     document.getElementById('serverPort').textContent  = data.port  ?? '3001'
+    document.getElementById('serverDelay').textContent = `${data.delay ?? 0}ms`
     document.getElementById('serverUrl').textContent   = `http://localhost:${data.port ?? 3001}`
 
     const tbody = document.getElementById('routesBody')

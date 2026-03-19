@@ -7,7 +7,11 @@
 import express           from 'express'
 import { buildResponder } from './responder.js'
 
-export function buildRouter(spec, requestLog, port) {
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+export function buildRouter(spec, requestLog, port, delay = 0) {
   const router = express.Router()
   const paths  = spec?.paths ?? {}
 
@@ -21,8 +25,12 @@ export function buildRouter(spec, requestLog, port) {
 
       const responder = buildResponder(operation)
 
-      router[verb](expressPath, (req, res) => {
+      router[verb](expressPath, async (req, res) => {
         const t0                   = Date.now()
+
+        // Artificial delay for testing loading states
+        if (delay > 0) await sleep(delay)
+
         const { status, headers, body } = responder(req)
 
         res.status(status)
