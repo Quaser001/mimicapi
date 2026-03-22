@@ -217,6 +217,7 @@ tr:hover td { background: rgba(124,111,247,0.04); }
       </div>
       <div class="status-label">mock server</div>
       <div class="status-url" id="serverUrl">http://localhost:3001</div>
+      <div class="status-watch" id="watchStatus"></div>
     </div>
   </aside>
 
@@ -348,6 +349,15 @@ async function loadRoutes() {
     document.getElementById('serverPort').textContent  = data.port  ?? '3001'
     document.getElementById('serverDelay').textContent = `${data.delay ?? 0}ms`
     document.getElementById('serverUrl').textContent   = `http://localhost:${data.port ?? 3001}`
+
+    const watchEl = document.getElementById('watchStatus')
+    if (watchEl) {
+      watchEl.textContent = data.watch ? 'Watch: on' : ''
+      watchEl.style.color = data.watch ? 'var(--teal)' : 'var(--text2)'
+      watchEl.style.fontSize = '10px'
+      watchEl.style.fontFamily = 'var(--mono)'
+      watchEl.style.marginTop = '3px'
+    }
 
     const tbody = document.getElementById('routesBody')
     if (!data.routes || data.routes.length === 0) {

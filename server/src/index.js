@@ -5,7 +5,7 @@
  * Usage: node src/index.js serve path/to/spec.yaml --port 3001
  */
 
-import { readFileSync, existsSync } from 'fs'
+import { readFileSync, existsSync, watch as fsWatch } from 'fs'
 import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { program }       from 'commander'
@@ -30,6 +30,7 @@ program
   .option('-p, --port <number>', 'Port to listen on', '3001')
   .option('--host <host>',       'Host to bind to',   'localhost')
   .option('--delay <ms>',        'Add artificial delay to all responses in milliseconds', '0')
+  .option('--watch', 'Watch spec file and reload routes on change')
   .action((specFile, options) => {
     const port  = parseInt(options.port, 10)
     const host  = options.host
@@ -90,6 +91,7 @@ program
         title:  spec?.info?.title ?? 'MimicAPI spec',
         port,
         delay,
+        watch: !!options.watch,
         routes: routes.map(r => ({ method: r.method, path: r.path, status: r.status })),
       })
     })
@@ -152,6 +154,34 @@ program
       console.log(`  ➜  Routes:    ${routes.length} endpoints`)
       if (delay > 0) console.log(`  ➜  Delay:     ${delay}ms per response`)
       console.log()
+
+      if (options.watch) {
+        console.log(`  ➜  Watch:     enabled (${specFile})`)
+        let debounceTimer = null
+        fsWatch(resolve(process.cwd(), specFile), () => {
+          clearTimeout(debounceTimer)
+          debounceTimer = setTimeout(() => {
+            try {
+              const newRaw = readFileSync(resolve(process.cwd(), specFile), 'utf8')
+              const newSpec = specFile.endsWith('.json')
+                ? JSON.parse(newRaw)
+                : yaml.load(newRaw)
+              app._router.stack = app._router.stack.filter(layer =>
+                !layer.route ||
+                layer.route.path.startsWith('/__mimicapi') ||
+                layer.route.path === '/dashboard'
+              )
+              const { router: newRouter } = buildRouter(newSpec, requestLog, port)
+              app.use(newRouter)
+              spec   = newSpec
+              routes = buildRouteList(newSpec)
+              console.log(`\n  [watch] spec reloaded — ${routes.length} routes active\n`)
+            } catch (e) {
+              console.error(`  [watch] reload failed: ${e.message}`)
+            }
+          }, 300)
+        })
+      }
     })
   })
 
