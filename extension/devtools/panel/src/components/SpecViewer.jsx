@@ -4,7 +4,7 @@ import 'prismjs/components/prism-yaml'
 import { toSimpleYAML } from '../utils/yaml.js'
 import styles from './SpecViewer.module.css'
 
-export default function SpecViewer({ spec }) {
+export default function SpecViewer({ spec, specObj }) {
   const codeRef = useRef(null)
 
   const yaml = spec
@@ -35,6 +35,18 @@ export default function SpecViewer({ spec }) {
     URL.revokeObjectURL(a.href)
   }
 
+  const downloadJson = () => {
+    if (!specObj && !spec) return
+    const obj = specObj ?? {}
+    const json = JSON.stringify(obj, null, 2)
+    const blob = new Blob([json], { type: 'application/json' })
+    const a    = document.createElement('a')
+    a.href     = URL.createObjectURL(blob)
+    a.download = 'mimicapi-spec.json'
+    a.click()
+    URL.revokeObjectURL(a.href)
+  }
+
   if (!yaml) {
     return (
       <div className={styles.empty}>
@@ -50,6 +62,7 @@ export default function SpecViewer({ spec }) {
         <div className={styles.actions}>
           <button className={styles.btn} onClick={copySpec}>Copy YAML</button>
           <button className={styles.btnPrimary} onClick={downloadSpec}>Download .yaml</button>
+          <button className={styles.btn} onClick={downloadJson}>Download .json</button>
         </div>
       </div>
       <pre className={styles.pre}>

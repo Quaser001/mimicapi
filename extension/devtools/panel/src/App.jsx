@@ -17,6 +17,7 @@ function sendMsg(msg) {
 export default function App() {
   const [captures,   setCaptures]   = useState([])
   const [spec,       setSpec]       = useState(null)
+  const [specObj,    setSpecObj]    = useState(null)
   const [recording,  setRecording]  = useState(true)
   const [activeTab,  setActiveTab]  = useState('traffic')  // 'traffic' | 'spec'
   const [selected,   setSelected]   = useState(null)
@@ -62,6 +63,7 @@ export default function App() {
     const res = await sendMsg({ type: 'MIMICAPI_BUILD_SPEC' })
     if (res?.spec) {
       setSpec(res.spec)
+      setSpecObj(res.specObj ?? null)
       setActiveTab('spec')
     }
   }, [])
@@ -120,7 +122,7 @@ export default function App() {
         )}
         {activeTab === 'spec' && (
           <div className={styles.specBody}>
-            <SpecViewer spec={spec} />
+            <SpecViewer spec={spec} specObj={specObj} />
             <MockControls spec={spec} />
           </div>
         )}

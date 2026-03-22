@@ -65,7 +65,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
       const specObj  = buildSpec(baseUrl, endpoints)
       const specYaml = specToYAML(specObj)
-      sendResponse({ spec: specYaml })
+      sendResponse({ spec: specYaml, specObj })
       return true
     }
   }
