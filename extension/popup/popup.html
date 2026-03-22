@@ -1,36 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <style>
-    body {
-      width: 240px;
-      padding: 14px 16px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      font-size: 13px;
-      background: #1a1a1a;
-      color: #e8e8e8;
-      margin: 0;
-    }
-    .logo { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
-    .mark {
-      width:24px; height:24px; background:#7c6ff7; border-radius:6px;
-      display:flex; align-items:center; justify-content:center;
-      font-size:13px; font-weight:700; color:#fff;
-    }
-    .name  { font-size:14px; font-weight:600; }
-    .hint  { font-size:11px; color:#666; line-height:1.6; }
-    .hint strong { color:#a0a0a0; }
-  </style>
+<meta charset="UTF-8"/>
+<style>
+  :root {
+    --bg: #0f0f1a; --bg2: #1c1c38; --border: rgba(124,111,247,0.2);
+    --purple: #7c6ff7; --purple2: #a99ff9;
+    --teal: #34d399; --red: #f87171;
+    --text0: #f0eeff; --text1: #a89de8; --text2: #5a5480;
+    --mono: 'JetBrains Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 220px; background: var(--bg);
+    color: var(--text0); font-family: -apple-system, sans-serif;
+    font-size: 13px;
+  }
+  .header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 14px; border-bottom: 1px solid var(--border);
+  }
+  .mark {
+    width: 24px; height: 24px; background: var(--purple);
+    border-radius: 6px; display: flex; align-items: center;
+    justify-content: center; font-weight: 700; font-size: 12px;
+    color: #fff; flex-shrink: 0;
+  }
+  .name { font-size: 14px; font-weight: 600; }
+  .status-row {
+    display: flex; align-items: center; gap: 6px;
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .dot-on  { background: var(--teal); }
+  .dot-off { background: var(--red); }
+  .status-label { font-size: 12px; color: var(--text1); }
+  .count-block {
+    padding: 12px 14px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: baseline; gap: 6px;
+  }
+  .count-num {
+    font-size: 28px; font-weight: 700; color: var(--purple2);
+    font-family: var(--mono); line-height: 1;
+  }
+  .count-label { font-size: 11px; color: var(--text2); }
+  .actions { padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; }
+  button {
+    font-size: 12px; font-family: inherit;
+    padding: 6px 12px; border-radius: 6px;
+    border: 1px solid var(--border); cursor: pointer;
+    transition: opacity .15s; width: 100%; text-align: left;
+  }
+  button:hover { opacity: .8; }
+  .btn-pause  { background: rgba(124,111,247,0.1); color: var(--purple2); }
+  .btn-clear  { background: rgba(248,113,113,0.08); color: var(--red); }
+  .hint {
+    padding: 10px 14px; font-size: 11px; color: var(--text2);
+    line-height: 1.5; border-top: 1px solid var(--border);
+  }
+</style>
 </head>
 <body>
-  <div class="logo">
-    <div class="mark">M</div>
-    <span class="name">MimicAPI</span>
-  </div>
-  <p class="hint">
-    Open <strong>DevTools → MimicAPI tab</strong><br>
-    to view captured traffic and generate your OpenAPI spec.
-  </p>
+<div class="header">
+  <div class="mark">M</div>
+  <span class="name">MimicAPI</span>
+</div>
+<div class="status-row">
+  <span class="dot dot-on" id="dot"></span>
+  <span class="status-label" id="statusLabel">Recording</span>
+</div>
+<div class="count-block">
+  <span class="count-num" id="captureCount">—</span>
+  <span class="count-label">captures</span>
+</div>
+<div class="actions">
+  <button class="btn-pause" id="toggleBtn">Pause recording</button>
+  <button class="btn-clear" id="clearBtn">Clear all captures</button>
+</div>
+<div class="hint">Open DevTools → MimicAPI tab to build your spec.</div>
+<script src="popup.js"></script>
 </body>
 </html>
