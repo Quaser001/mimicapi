@@ -39,6 +39,9 @@ export default function App() {
       if (message.type === 'MIMICAPI_NEW_ENTRY') {
         setCaptures(prev => [message.entry, ...prev])
       }
+      if (message.type === 'MIMICAPI_RECORDING_CHANGED') {
+        setRecording(message.recording)
+      }
       if (message.type === 'MIMICAPI_SPEC_UPDATED') {
         setSpec(message.spec)
       }

@@ -59,5 +59,15 @@
       "resources": ["devtools/panel/dist/*"],
       "matches": ["<all_urls>"]
     }
-  ]
+  ],
+
+  "commands": {
+    "toggle-recording": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+M",
+        "mac": "Command+Shift+M"
+      },
+      "description": "Toggle MimicAPI recording on/off"
+    }
+  }
 }

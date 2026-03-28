@@ -70,3 +70,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     }
   }
 })
+
+chrome.commands.onCommand.addListener((command) => {
+  if (command === 'toggle-recording') {
+    recording = !recording
+    chrome.runtime.sendMessage({
+      type:      'MIMICAPI_RECORDING_CHANGED',
+      recording,
+    }).catch(() => {})
+  }
+})
