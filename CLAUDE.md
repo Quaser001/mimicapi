@@ -26,7 +26,7 @@ extension/background/*.js with the same changes or the extension breaks.
 - Server uses Node ESM, not CommonJS
 
 ## Commands
-npm test                     — run all 28 tests (Node built-in test runner)
+npm test                     — run all 35 tests (Node built-in test runner)
 npm run build:panel          — build React devtools panel to extension/devtools/panel/dist/
 npm run dev:panel            — watch mode for panel development
 node server/src/index.js serve server/sample-spec.yaml --port 3001
@@ -59,8 +59,9 @@ GET  /__mimicapi/log     — { entries: [{ time, method, path, status, dur }] }
 POST /__mimicapi/import  — body: raw YAML → hot-reload routes
 
 ## Test files
-shared/tests/schema-infer.test.js    — 18 tests
+shared/tests/schema-infer.test.js    — 21 tests
 shared/tests/openapi-builder.test.js — 10 tests
+shared/tests/integration.test.js     — end-to-end pipeline tests
 Uses Node built-in test runner (node:test + node:assert)
 Run with: node --test shared/tests/*.test.js
 
