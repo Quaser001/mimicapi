@@ -217,6 +217,7 @@ tr:hover td { background: rgba(124,111,247,0.04); }
       </div>
       <div class="status-label">mock server</div>
       <div class="status-url" id="serverUrl">http://localhost:3001</div>
+      <div id="uptime" style="font-size:10px;font-family:var(--mono);color:var(--text2);margin-top:3px;"></div>
       <div class="status-watch" id="watchStatus"></div>
     </div>
   </aside>
@@ -496,6 +497,18 @@ function now() {
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
+
+async function pollHealth() {
+  try {
+    const res  = await fetch(API + '/__mimicapi/health')
+    const data = await res.json()
+    const el   = document.getElementById('uptime')
+    if (el) el.textContent = 'up ' + data.uptimeStr
+  } catch {}
+}
+pollHealth()
+setInterval(pollHealth, 5000)
+
 loadRoutes()
 </script>
 </body>

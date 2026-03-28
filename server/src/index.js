@@ -32,6 +32,7 @@ program
   .option('--delay <ms>',        'Add artificial delay to all responses in milliseconds', '0')
   .option('--watch', 'Watch spec file and reload routes on change')
   .action((specFile, options) => {
+    const startTime = Date.now()
     const port  = parseInt(options.port, 10)
     const host  = options.host
     const delay = parseInt(options.delay, 10) || 0
@@ -103,6 +104,23 @@ program
 
     app.get('/__mimicapi/log', (_req, res) => {
       res.json({ entries: requestLog })
+    })
+
+    app.get('/__mimicapi/health', (_req, res) => {
+      const uptimeMs  = Date.now() - startTime
+      const uptimeSec = Math.floor(uptimeMs / 1000)
+      const minutes   = Math.floor(uptimeSec / 60)
+      const seconds   = uptimeSec % 60
+      res.json({
+        status:    'ok',
+        uptime:    uptimeMs,
+        uptimeStr: minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`,
+        routes:    routes.length,
+        port,
+        delay:     parseInt(options.delay, 10) || 0,
+        watch:     !!options.watch,
+        version:   '0.1.0',
+      })
     })
 
     app.post('/__mimicapi/import', (req, res) => {
