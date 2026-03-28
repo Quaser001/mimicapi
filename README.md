@@ -2,147 +2,159 @@
 
 > Record real API traffic from your browser → auto-generate an OpenAPI 3.0 spec → spin up a local mock server. Zero config. Zero cloud. Fully FOSS.
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
+[![FOSS Hack 2026](https://img.shields.io/badge/FOSS%20Hack-2026-green.svg)](https://fossunited.org/fosshack/2026)
+[![Tests](https://img.shields.io/badge/tests-35%20passing-teal.svg)]()
+
 ---
 
 ## The problem
 
-Every frontend developer has been blocked waiting for a backend API that isn't ready yet.
-Existing tools require you to **manually write** specs (Postman, Insomnia) or already **have** a spec (Prism).
-No open-source tool records real traffic **and** turns it into a live mock — until now.
+Every frontend developer gets blocked waiting for a backend that
+isn't ready. Writing mock data by hand falls out of sync. Tools
+like Postman require you to write specs manually. Prism needs a
+spec that doesn't exist yet.
+
+MimicAPI flips this — instead of writing specs, you just browse.
 
 ---
 
 ## How it works
 
 ```
-Browser page fires fetch() / XHR
-        │
-        ▼
-[interceptor.js — MAIN world]   ← patches window.fetch and XMLHttpRequest
-        │  CustomEvent
-        ▼
-[bridge.js — isolated world]    ← relays to chrome.runtime
-        │  sendMessage
-        ▼
-[background service-worker]     ← stores + deduplicates by endpoint
-        │
-        ▼
-[DevTools panel — React UI]     ← live traffic list + Build Spec button
-        │
-        ▼
-[shared/openapi-builder.js]     ← infers schemas → emits OpenAPI 3.0 YAML
-        │
-        ▼
-[server/  —  npx mimicapi serve spec.yaml]   ← Express mock serves real responses
+Browser makes fetch() or XHR call
+        ↓
+interceptor.js captures it (MAIN world)
+        ↓
+bridge.js relays to background SW (isolated world)
+        ↓
+CaptureStore deduplicates by endpoint + templates paths
+        ↓
+Click "Build Spec" → schema-infer + openapi-builder
+        ↓
+Valid OpenAPI 3.0.3 YAML spec
+        ↓
+npx mimicapi serve spec.yaml → Express mock server
+        ↓
+localhost:3001/dashboard → web dashboard
 ```
 
 ---
 
-## Features
+## Install
 
-- **Live traffic capture** — intercepts every `fetch` and `XMLHttpRequest` call on any site
-- **Smart path templating** — `/users/42` and `/users/99` merge into `/users/{userId}` automatically
-- **Schema inference** — derives JSON Schema (draft-7) from real response bodies, handles nested objects, arrays, nullable fields, and formats (date-time, email, uuid, uri)
-- **OpenAPI 3.0.3 export** — valid spec you can paste into Swagger UI, Postman, or any other tool
-- **Local mock server** — `npx mimicapi serve spec.yaml` — no internet required
-- **Faker fallback** — if exact replay data isn't available, generates realistic fake data from the inferred schema
-- **Zero proprietary dependencies** — the extension has no npm runtime deps; the server uses only MIT-licensed packages
-
----
-
-## Installation
-
-### Extension (development)
+### Extension
 
 ```bash
 git clone https://github.com/Quaser001/mimicapi.git
 cd mimicapi
 npm install
-npm run build:panel
+cd extension/devtools/panel && npm install && npm run build && cd ../../..
 ```
 
-Then in Chrome:
+Load in Chrome:
 1. Go to `chrome://extensions`
-2. Enable **Developer mode** (top right)
-3. Click **Load unpacked** → select the `extension/` folder
+2. Enable Developer mode
+3. Click Load unpacked → select the `extension/` folder
+4. Open DevTools on any site → MimicAPI tab
 
 ### Mock server
 
 ```bash
-cd server
-npm install
+cd server && npm install
+node src/index.js serve spec.yaml --port 3001
+node src/index.js serve spec.yaml --port 3001 --delay 500
+node src/index.js serve spec.yaml --port 3001 --watch
 ```
 
 ---
 
 ## Usage
 
-1. Open Chrome DevTools (`F12`) → click the **MimicAPI** tab
-2. Browse any website — requests appear live in the Traffic panel
-3. Click **Build spec** → switch to the OpenAPI Spec tab
-4. Click **Download .yaml**
-5. In your terminal:
+1. Open Chrome DevTools on any website
+2. Click the **MimicAPI** tab
+3. Browse around — requests appear live
+4. Click **Build Spec** → download the YAML
+5. Run `node server/src/index.js serve mimicapi-spec.yaml`
+6. Your frontend now hits `http://localhost:3001`
+7. Visit `http://localhost:3001/dashboard` to inspect routes
 
-```bash
-npx mimicapi serve mimicapi-spec.yaml --port 3001
-```
+**Keyboard shortcut:** `Ctrl+Shift+M` toggles recording on/off
 
-6. Your frontend now hits `http://localhost:3001` instead of the real API
+---
+
+## Features
+
+| Feature | Description |
+|---|---|
+| Live traffic capture | Intercepts every fetch + XHR at document_start |
+| Smart path templating | `/users/42` → `/users/{userId}` automatically |
+| Schema inference | JSON Schema draft-7 from real response bodies |
+| Null + mixed type handling | Nullable fields and mixed arrays handled correctly |
+| OpenAPI 3.0.3 export | Download as YAML or JSON |
+| Mock server | Express server with exact replay + faker fallback |
+| Response delay | `--delay 500` simulates slow networks |
+| Live reload | `--watch` reloads routes when spec file changes |
+| Web dashboard | Routes, request log, spec viewer, import at /dashboard |
+| Health endpoint | `/__mimicapi/health` returns uptime + route count |
+| Extension popup | Live capture count + pause/clear from toolbar |
+| Keyboard shortcut | `Ctrl+Shift+M` toggles recording |
 
 ---
 
 ## Tech stack
 
-| Layer | Technology | License |
+| Layer | Tech | License |
 |---|---|---|
 | Extension | Chrome MV3, Vanilla JS | — |
-| Devtools UI | React 18, Vite | MIT |
-| Schema engine | Pure JS (no deps) | MIT |
-| Mock server | Node.js, Express | MIT |
-| Response faker | @faker-js/faker | MIT |
-| Spec parsing | js-yaml | MIT |
+| Devtools panel | React 18, Vite 5 | MIT |
+| Schema engine | Pure JS, zero deps | MIT |
+| Mock server | Node.js, Express 4 | MIT |
+| Faker | @faker-js/faker | MIT |
 | CLI | Commander.js | MIT |
+| YAML | js-yaml | MIT |
 
-**No proprietary APIs. No cloud services. No telemetry.**
+No proprietary APIs. No cloud services. No telemetry.
 
 ---
 
 ## Project structure
 
 ```
-mimicapi/
-├── extension/
-│   ├── manifest.json              Chrome MV3 manifest
-│   ├── content/
-│   │   ├── interceptor.js         MAIN world — patches fetch + XHR
-│   │   └── bridge.js              Isolated world — relays to background SW
-│   ├── background/
-│   │   ├── service-worker.js      Message router + broadcast
-│   │   └── store.js               In-memory capture store + path templating
-│   └── devtools/
-│       └── panel/                 React + Vite devtools panel
-│           └── src/components/
-│               ├── TrafficList    Live request list + detail pane
-│               ├── SpecViewer     OpenAPI YAML viewer + download
-│               └── MockControls   Server start/stop UI
-├── shared/
-│   ├── schema-infer.js            JSON value → JSON Schema draft-7
-│   └── openapi-builder.js         Captures → OpenAPI 3.0.3 spec
-└── server/
-    └── src/
-        ├── index.js               CLI entry (Commander)
-        ├── router.js              Builds Express routes from spec
-        └── responder.js           Exact replay + faker fallback
+extension/
+  content/interceptor.js      MAIN world — patches fetch + XHR
+  content/bridge.js           Isolated world — relays to SW
+  background/service-worker.js Message router
+  background/store.js         Capture store + path templating
+  devtools/panel/             React 18 devtools UI
+  popup/                      Toolbar popup with live stats
+shared/
+  schema-infer.js             JSON → JSON Schema draft-7
+  openapi-builder.js          Captures → OpenAPI 3.0.3
+  tests/                      35 tests
+server/
+  src/index.js                CLI entry + Express setup
+  src/router.js               Route builder from spec
+  src/responder.js            Response replay + faker
+  src/public/dashboard.html   Web dashboard
+docs/
+  index.html                  GitHub Pages landing page
+```
+
+---
+
+## Development
+
+```bash
+npm test               # run 35 tests
+npm run build:panel    # build React panel
+npm run dev:panel      # watch mode
 ```
 
 ---
 
 ## License
 
-MIT — see [LICENSE](./LICENSE)
+MIT — see [LICENSE](LICENSE)
 
----
-
-## Built for
-
-[FOSS Hack 2026](https://fossunited.org/fosshack/2026) — India's largest open-source hackathon.
+Built for [FOSS Hack 2026](https://fossunited.org/fosshack/2026)
