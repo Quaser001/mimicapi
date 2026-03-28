@@ -16,16 +16,20 @@
 
 export function inferSchema(value) {
   if (value === null || value === undefined) {
-    return { type: 'null' }
+    return { nullable: true }
   }
 
   if (Array.isArray(value)) {
     if (value.length === 0) {
       return { type: 'array', items: {} }
     }
-    // Merge schemas of all items into one representative item schema
     const itemSchemas = value.map(inferSchema)
-    return { type: 'array', items: mergeSchemas(itemSchemas) }
+    const types = [...new Set(itemSchemas.map(s => s.type).filter(Boolean))]
+    if (types.length === 1) {
+      return { type: 'array', items: mergeSchemas(itemSchemas) }
+    }
+    const uniqueSchemas = types.map(t => ({ type: t }))
+    return { type: 'array', items: { oneOf: uniqueSchemas } }
   }
 
   if (typeof value === 'object') {
@@ -86,30 +90,38 @@ export function mergeSchemas(schemas) {
   if (schemas.length === 1)             return schemas[0]
 
   const types = [...new Set(schemas.map(s => s.type).filter(Boolean))]
+  const hasNull = schemas.some(s => s.nullable === true)
 
   // All same type
   if (types.length === 1) {
     const type = types[0]
 
     if (type === 'object') {
-      return mergeObjectSchemas(schemas)
+      const result = mergeObjectSchemas(schemas)
+      if (hasNull && result && result.type) result.nullable = true
+      return result
     }
 
     if (type === 'array') {
       const itemSchemas = schemas.map(s => s.items).filter(Boolean)
-      return { type: 'array', items: mergeSchemas(itemSchemas) }
+      const result = { type: 'array', items: mergeSchemas(itemSchemas) }
+      if (hasNull && result && result.type) result.nullable = true
+      return result
     }
 
     // Primitive — return with example from first non-null sample
     const withExample = schemas.find(s => s.example !== undefined)
-    const base = { type }
-    if (withExample)        base.example = withExample.example
-    if (withExample?.format) base.format = withExample.format
-    return base
+    const result = { type }
+    if (withExample)        result.example = withExample.example
+    if (withExample?.format) result.format = withExample.format
+    if (hasNull && result && result.type) result.nullable = true
+    return result
   }
 
   // Mixed types — use oneOf
-  return { oneOf: schemas }
+  const result = { oneOf: schemas }
+  if (hasNull && result && result.type) result.nullable = true
+  return result
 }
 
 function mergeObjectSchemas(schemas) {

@@ -1,10 +1,10 @@
-import { describe, it } from 'node:test'
+import { describe, it, test } from 'node:test'
 import assert from 'node:assert/strict'
 import { inferSchema, mergeSchemas } from '../schema-infer.js'
 
 describe('inferSchema', () => {
   it('infers null', () => {
-    assert.deepStrictEqual(inferSchema(null), { type: 'null' })
+    assert.deepStrictEqual(inferSchema(null), { nullable: true })
   })
 
   it('infers boolean', () => {
@@ -116,5 +116,22 @@ describe('mergeSchemas', () => {
     const merged = mergeSchemas([a, b])
     assert.ok(merged.oneOf)
     assert.equal(merged.oneOf.length, 2)
+  })
+
+  test('mixed type array uses oneOf', () => {
+    const schema = inferSchema([1, 'hello', true])
+    assert.strictEqual(schema.type, 'array')
+    assert.ok(schema.items.oneOf)
+    assert.strictEqual(schema.items.oneOf.length, 3)
+  })
+
+  test('null value returns nullable true', () => {
+    const schema = inferSchema(null)
+    assert.strictEqual(schema.nullable, true)
+  })
+
+  test('object with null field marks field nullable', () => {
+    const schema = inferSchema({ name: 'Alice', age: null })
+    assert.strictEqual(schema.properties.age.nullable, true)
   })
 })
